@@ -13,3 +13,41 @@ Pemisahan Aliran Data: Saat file diterima backend, file harus divalidasi (tipe, 
 
 Penyimpanan File Sensitif (KTP): Ini adalah inti tugasnya. Simpan file KTP di object Implementasikan Enkripsi Sisi Server
 Kontrol Akses: Buktikan bahwa file KTP tersebut tidak bisa diakses publik, dan hanya bisa diakses oleh layanan internal yang memiliki credential khusus.
+
+## Kontribusi
+
+- Clone repositori
+
+  ```sh
+  git clone https://github.com/bukanberuangsr/modalrakyat-K4.git
+  ```
+
+- Masuk ke direktori
+
+  ```sh
+  cd path/to/modalrakyat-K4
+  ```
+
+- Copy file .env.example dan buat file .env
+- jalankan container dan cek container yang berjalan
+
+  ```sh
+  docker-compose up -d
+  docker-compose ps
+  ```
+
+- Masuk ke container laravel, migrasi, dan install dependensi
+
+  ```sh
+  docker exec -it modalrakyat-app-1 bash
+  php artisan migrate
+  composer install
+  exit
+  ```
+
+- Jika terdapat perubahan pada file, jalankan ulang containernya
+
+  ```sh
+  docker-compose up -d
+  docker-compose ps
+  ```
