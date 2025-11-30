@@ -46,9 +46,8 @@ Kontrol Akses: Buktikan bahwa file KTP tersebut tidak bisa diakses publik, dan h
   exit
   ```
 
-- Jika terdapat perubahan pada file, jalankan ulang containernya
+- Untuk mematikan container jalankan perintah berikut
 
   ```sh
-  docker-compose up -d
-  docker-compose ps
+  docker-compose down
   ```
