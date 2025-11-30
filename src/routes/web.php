@@ -24,13 +24,15 @@ Route::get('/login', [AuthController::class, 'index'])
 Route::post('/login', [AuthController::class, 'login']);
 
 // Register (GET)
-Route::get('/register', [AuthController::class, 'registerView'])
-    ->name('register');
+Route::get('/register', [AuthController::class, 'registerView'])->name('register');
 
 // Register (POST)
-Route::post('/register', [AuthController::class, 'register'])
-    ->name('register.submit');
+Route::post('/register', [AuthController::class, 'register'])->name('register.submit');
 
 // Logout
 Route::post('/logout', [AuthController::class, 'logout'])
     ->name('logout');
+
+Route::get('/dashboard/admin', function () {
+    return view('dashboardAdmin');
+})->name('dashboard');
