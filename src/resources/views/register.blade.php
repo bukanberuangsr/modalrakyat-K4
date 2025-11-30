@@ -20,7 +20,7 @@
 
             <label for="email">Email</label>
             <input type="email" name="email" placeholder="Masukkan email" required>
-            
+
             <label for="password">Kata sandi</label>
             <div class="password-wrapper">
                 <input type="password" id="password" name="password" placeholder="Masukkan kata sandi" required>
@@ -43,7 +43,7 @@ document.getElementById("registerForm").addEventListener("submit", async functio
     const formData = new FormData(this);
     const csrf = document.querySelector('meta[name="csrf-token"]').content;
 
-    const response = await fetch("{{ route('register') }}", {
+    const response = await fetch("{{ route('register.submit') }}", {
         method: "POST",
         headers: { "X-CSRF-TOKEN": csrf },
         body: formData
