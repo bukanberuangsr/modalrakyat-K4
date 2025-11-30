@@ -1,0 +1,141 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+/* Font Global */
+input, button, select, textarea {
+    font-family: 'Poppins', sans-serif !important;
+}
+
+body {
+    margin: 0;
+    font-family: 'Poppins', sans-serif;
+    background: #0f0f0f;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    color: #eaeaea;
+}
+
+/* Layout Register */
+.register-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+}
+
+.register-card {
+    background: #1b1b1b;
+    width: 380px;
+    padding: 40px 30px;
+    border-radius: 28px;
+    box-shadow: 0 5px 18px rgba(255, 255, 255, 0.04);
+    text-align: left;
+}
+
+/* Register Title */
+.register-title {
+    text-align: center;
+    font-size: 28px;
+    color: #ffffff;
+    margin-bottom: 4px;
+    margin-top: 4px;
+}
+
+.register-subtitle {
+    text-align: center;
+    font-size: 14px;
+    color: #bbbbbb;
+    margin-bottom: 30px;
+}
+
+/* Label */
+.register-card label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: #eaeaea;
+    font-size: 14px;
+}
+
+/* Input */
+.register-card input {
+    width: 100%;
+    border: none;
+    padding-top: 14px;
+    padding-bottom: 14px;
+    padding-left: 24px;
+    padding-right: 24px;
+    background: #2b2b2b;
+    border-radius: 50px;
+    margin-bottom: 18px;
+    font-size: 14px;
+    box-sizing: border-box;
+    color: #eaeaea;
+}
+
+.register-card input::placeholder {
+    color: #888;
+}
+
+/* Tombol */
+.btn-register {
+    width: 100%;
+    padding: 14px;
+    border: none;
+    background: #0e57c2;
+    color: white;
+    font-size: 16px;
+    border-radius: 50px;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+.btn-register:hover {
+    background: #093f8a;
+}
+
+/* Login Link */
+.already {
+    text-align: center;
+    margin-top: 18px;
+    color: #d0d0d0;
+    font-size: 14px;
+}
+
+.already a {
+    color: #4a8bff;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.password-wrapper {
+    position: relative;
+}
+
+.password-wrapper input {
+    width: 100%;
+    padding: 14px 50px 14px 24px;
+    border-radius: 50px;
+    background: #2b2b2b;
+    color: #eaeaea;
+    font-size: 14px;
+    border: none;
+}
+
+/* Icon */
+.toggle-password {
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-86%); /* Posisi tinggi di tengah*/
+    width: 26px;
+    height: 26px;
+    cursor: pointer;
+    opacity: 0.6;
+    transition: opacity .2s;
+}
+
+.toggle-password:hover {
+    opacity: 1;
+}
