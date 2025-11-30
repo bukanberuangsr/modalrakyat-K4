@@ -3,7 +3,7 @@
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UploadController;
-use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Route;z
 use App\Http\Controllers\AuthController;
 
 Route::get('/', function () {
