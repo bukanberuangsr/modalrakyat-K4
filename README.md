@@ -36,12 +36,13 @@ Kontrol Akses: Buktikan bahwa file KTP tersebut tidak bisa diakses publik, dan h
   docker-compose ps
   ```
 
-- Masuk ke container laravel, migrasi, dan install dependensi
+- Masuk ke container laravel, migrasi, install dependensi, serta generate JWT secret
 
   ```sh
   docker exec -it modalrakyat-app-1 bash
   php artisan migrate
   composer install
+  php artisan jwt:secret
   exit
   ```
 
