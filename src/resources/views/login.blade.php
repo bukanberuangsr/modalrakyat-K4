@@ -18,7 +18,8 @@
 
             <label>Kata sandi</label>
             <div class="password-wrapper">
-                <input type="password" name="password" placeholder="Masukkan kata sandi" required>
+                <input type="password" id="password" name="password" placeholder="Masukkan kata sandi" required>
+                <img src="{{ asset('icons/eye.svg') }}" class="toggle-password" id="toggleIcon" onclick="togglePassword()">
             </div>
 
             <button type="submit" class="btn-register">Masuk</button>
@@ -31,4 +32,17 @@
     </div>
 </div>
 
+<script>
+function togglePassword() {
+    const pwd = document.getElementById("password");
+    const icon = document.getElementById("toggleIcon");
+
+    const isHidden = pwd.type === "password";
+    pwd.type = isHidden ? "text" : "password";
+
+    icon.src = isHidden
+        ? "{{ asset('icons/eye-off.svg') }}"
+        : "{{ asset('icons/eye.svg') }}";
+}
+</script>
 @endsection
