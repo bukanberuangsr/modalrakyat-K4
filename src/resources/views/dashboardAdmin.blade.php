@@ -3,23 +3,12 @@
 @section('title', 'Dashboard Admin | ModalRakyat')
 
 @section('content')
+
 <div class="dashboard-wrapper">
     <div class="dashboard-container">
 
         <!-- Sidebar -->
-        <div class="sidebar">
-            <h2 class="logo">ModalRakyat</h2>
-
-            <ul class="menu">
-                <li class="active">Dashboard</li>
-                <li>Verifikasi Dokumen</li>
-                <li>Data Pengguna</li>
-                <li>Audit Log</li>
-                <li>Pengaturan</li>
-            </ul>
-
-            <button class="btn-logout">Keluar</button>
-        </div>
+        @include('sidebar')
 
         <!-- Content -->
         <div class="main-content">

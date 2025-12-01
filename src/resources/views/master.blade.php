@@ -20,5 +20,19 @@
     <div class="container">
         @yield('content')
     </div>
+
+    <script>
+        const modal = document.getElementById('modal-role');
+
+        document.querySelectorAll('.open-role').forEach(btn=>{
+            btn.addEventListener('click', ()=> {
+                modal.style.display = 'flex';
+            });
+        });
+
+        document.querySelector('.close-modal').addEventListener('click', ()=> {
+            modal.style.display = 'none';
+        });
+    </script>
 </body>
 </html>

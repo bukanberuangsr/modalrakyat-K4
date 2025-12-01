@@ -36,3 +36,7 @@ Route::post('/logout', [AuthController::class, 'logout'])
 Route::get('/dashboard/admin', function () {
     return view('dashboardAdmin');
 })->name('dashboard');
+
+Route::get('/dashboard/users', function () {
+    return view('adminUsers');
+})->name('admin.users');
