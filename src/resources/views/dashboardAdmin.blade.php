@@ -70,21 +70,30 @@
                             <td>KTP</td>
                             <td><span class="badge pending">Pending</span></td>
                             <td>30 Nov 2025</td>
-                            <td><button class="btn-action">Periksa</button></td>
+                            <td>
+                                <button class="btn-action">Periksa</button>
+                                <button class="btn-download">Download</button>
+                            </td>
                         </tr>
                         <tr>
                             <td>Rizki Andika</td>
                             <td>Slip Gaji</td>
                             <td><span class="badge success">Verified</span></td>
                             <td>29 Nov 2025</td>
-                            <td><button class="btn-action">Detail</button></td>
+                            <td>
+                                <button class="btn-action">Detail</button>
+                                <button class="btn-download">Download</button>
+                            </td>
                         </tr>
                         <tr>
                             <td>Sarah Putri</td>
                             <td>KTP</td>
                             <td><span class="badge danger">Rejected</span></td>
                             <td>28 Nov 2025</td>
-                            <td><button class="btn-action">Ulangi</button></td>
+                            <td>
+                                <button class="btn-action">Ulangi</button>
+                                <button class="btn-download">Download</button>
+                            </td>
                         </tr>
                     </tbody>
                 </table>
