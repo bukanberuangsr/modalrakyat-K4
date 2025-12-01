@@ -17,14 +17,14 @@ body {
 }
 
 /* Layout Register */
-.register-container {
+.auth-container {
     display: flex;
     justify-content: center;
     align-items: center;
     width: 100%;
 }
 
-.register-card {
+.auth-card {
     background: #1b1b1b;
     width: 380px;
     padding: 40px 30px;
@@ -34,7 +34,7 @@ body {
 }
 
 /* Register Title */
-.register-title {
+.auth-title {
     text-align: center;
     font-size: 28px;
     color: #ffffff;
@@ -42,7 +42,7 @@ body {
     margin-top: 4px;
 }
 
-.register-subtitle {
+.auth-subtitle {
     text-align: center;
     font-size: 14px;
     color: #bbbbbb;
@@ -50,7 +50,7 @@ body {
 }
 
 /* Label */
-.register-card label {
+.auth-card label {
     display: block;
     font-weight: 600;
     margin-bottom: 6px;
@@ -59,7 +59,7 @@ body {
 }
 
 /* Input */
-.register-card input {
+.auth-card input {
     width: 100%;
     border: none;
     padding-top: 14px;
@@ -74,12 +74,12 @@ body {
     color: #eaeaea;
 }
 
-.register-card input::placeholder {
+.auth-card input::placeholder {
     color: #888;
 }
 
 /* Tombol */
-.btn-register {
+.btn-auth-submit {
     width: 100%;
     padding: 14px;
     border: none;
@@ -92,7 +92,7 @@ body {
     margin-top: 10px;
 }
 
-.btn-register:hover {
+.btn-auth-submit:hover {
     background: #093f8a;
 }
 

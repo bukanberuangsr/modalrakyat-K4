@@ -4,11 +4,11 @@
 
 @section('content')
 
-<div class="register-container">
-    <div class="register-card">
+<div class="auth-container">
+    <div class="auth-card">
 
-        <h2 class="register-title">Masuk</h2>
-        <p class="register-subtitle">silakan login ke akun Anda</p>
+        <h2 class="auth-title">Masuk</h2>
+        <p class="auth-subtitle">silakan login ke akun Anda</p>
 
         <form action="/login" method="POST">
             @csrf
@@ -22,7 +22,7 @@
                 <img src="{{ asset('icons/eye.svg') }}" class="toggle-password" id="toggleIcon" onclick="togglePassword()">
             </div>
 
-            <button type="submit" class="btn-register">Masuk</button>
+            <button type="submit" class="btn-auth-submit">Masuk</button>
 
             <div class="already">
                 Belum punya akun? <a href="/register">Daftar</a>
