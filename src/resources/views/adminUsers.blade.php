@@ -25,26 +25,23 @@
                         </tr>
                     </thead>
                     <tbody>
-
-                        <tr>
-                            <td>Michael Ivan</td>
-                            <td>michael@example.com</td>
-                            <td><span class="badge success">Admin</span></td>
-                            <td>
-                                <button class="btn-action open-role">Ubah Role</button>
-                            </td>
-                        </tr>
-
-                        <tr>
-                            <td>Sarah Putri</td>
-                            <td>sarah@example.com</td>
-                            <td><span class="badge pending">User</span></td>
-                            <td>
-                                <button class="btn-action open-role">Ubah Role</button>
-                            </td>
-                        </tr>
-
-                    </tbody>
+                        @foreach ($users as $user)
+                            <tr>
+                                <td>{{ $user->name }}</td>
+                                <td>{{ $user->email }}</td>
+                                <td>
+                                    <span class="badge {{ $user->role == 'admin' ? 'success' : 'pending' }}">
+                                        {{ ucfirst($user->role) }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <button class="btn-action open-role" data-user="{{ $user->id }}">
+                                        Ubah Role
+                                    </button>
+                                </td>
+                            </tr>
+                        @endforeach
+                        </tbody>
                 </table>
             </div>
 
@@ -71,5 +68,46 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const modal = document.getElementById('modal-role');
+    const inputRole = modal.querySelector('.input-role');
+    let selectedUserId = null;
+
+    // Buka modal
+    document.querySelectorAll('.open-role').forEach(btn => {
+        btn.addEventListener('click', () => {
+            selectedUserId = btn.dataset.user;
+            modal.style.display = 'flex';
+        });
+    });
+
+    // Tutup modal
+    modal.querySelector('.close-modal').addEventListener('click', () => {
+        modal.style.display = 'none';
+    });
+
+    // Simpan role
+    modal.querySelector('.btn-action').addEventListener('click', () => {
+        if (!selectedUserId) return;
+
+        fetch(`/user/${selectedUserId}/role`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({ role: inputRole.value })
+        })
+        .then(res => res.json())
+        .then(data => {
+            alert(data.message);
+            location.reload(); // Reload halaman untuk mengupdate role
+        })
+        .catch(err => console.error(err));
+    });
+});
+</script>
 
 @endsection

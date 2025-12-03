@@ -28,10 +28,20 @@ Route::get('/register', [AuthController::class, 'registerView'])->name('register
 Route::post('/register', [AuthController::class, 'register'])->name('register.submit');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
-Route::get('/dashboard/admin', function () {
-    return view('dashboardAdmin');
-})->name('dashboard');
+// Dashboard Admin
+Route::middleware(['auth', 'role:admin'])->group(function () {
+    Route::get('/dashboard/admin', [AdminController::class, 'dashboard'])
+        ->name('dashboard');
+});
 
-Route::get('/dashboard/users', function () {
-    return view('adminUsers');
-})->name('admin.users');
+// Manajemen Users
+Route::middleware(['auth', 'role:admin'])->group(function () {
+    Route::get('/dashboard/users', [AdminController::class, 'users'])
+        ->name('admin.users');
+});
+
+// Update Role Users
+Route::middleware(['auth', 'role:admin'])->group(function () {
+    Route::post('/user/{id}/role', [AdminController::class, 'updateRole'])
+        ->name('user.updateRole');
+});
