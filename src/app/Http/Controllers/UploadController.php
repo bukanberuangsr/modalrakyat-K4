@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use DB;
 
 class UploadController extends Controller
 {
@@ -48,15 +49,31 @@ class UploadController extends Controller
 
         $stream = Storage::disk('s3')->readStream($fileName);
         $hash = hash_file('sha256', stream_get_meta_data($stream)['uri']);
+        $size = Storage::disk('s3')->size($fileName);
 
         // Simpan ke database
-        \DB::table('uploads')->insert([
-            'user_id' => $req->user()->id,
+        DB::table('uploads')->insert([
+            'user_id'   => $req->user()->id,
             'file_name' => $fileName,
-            'hash' => $hash,
-            'created_at' => now()
+            'file_hash' => $hash,
+            'size'      => $size,
+            'type'      => $req->type ?? 'unknown',
+            'status'    => 'pending', // default KYC status
+            'created_at' => now(),
+            'updated_at' => now()
         ]);
 
         return response()->json(['status' => 'validated']);
+    }
+
+    // User dapat melihat apa yang di Upload
+    public function myUploads(Request $req)
+    {
+        $uploads = DB::table('uploads')
+            ->where('user_id', $req->user()->id)
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return response()->json($uploads);
     }
 }
