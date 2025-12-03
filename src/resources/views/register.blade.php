@@ -3,16 +3,16 @@
 @section('title', 'Daftar Akun ModalRakyat')
 
 @section('content')
-<div class="register-container">
+<div class="auth-container">
 
-    <div class="register-card">
+    <div class="auth-card">
 
-        <h2 class="register-title">Daftar</h2>
-        <p class="register-subtitle">Buat akun ModalRakyat Anda</p>
+        <h2 class="auth-title">Daftar</h2>
+        <p class="auth-subtitle">Buat akun ModalRakyat Anda</p>
 
         <div id="alert-box"></div>
 
-        <form id="registerForm">
+        <form id="authForm">
             @csrf
 
             <label for="name">Nama</label>
@@ -20,14 +20,14 @@
 
             <label for="email">Email</label>
             <input type="email" name="email" placeholder="Masukkan email" required>
-            
+
             <label for="password">Kata sandi</label>
             <div class="password-wrapper">
                 <input type="password" id="password" name="password" placeholder="Masukkan kata sandi" required>
                 <img src="{{ asset('icons/eye.svg') }}" class="toggle-password" id="toggleIcon" onclick="togglePassword()">
             </div>
 
-            <button type="submit" class="btn-register">Daftar</button>
+            <button type="submit" class="btn-auth-submit">Daftar</button>
         </form>
 
         <p class="already">Sudah memiliki akun?
@@ -37,13 +37,13 @@
 </div>
 
 <script>
-document.getElementById("registerForm").addEventListener("submit", async function(e) {
+document.getElementById("authForm").addEventListener("submit", async function(e) {
     e.preventDefault();
 
     const formData = new FormData(this);
     const csrf = document.querySelector('meta[name="csrf-token"]').content;
 
-    const response = await fetch("{{ route('register') }}", {
+    const response = await fetch("{{ route('register.submit') }}", {
         method: "POST",
         headers: { "X-CSRF-TOKEN": csrf },
         body: formData
