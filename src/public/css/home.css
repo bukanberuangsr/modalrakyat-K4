@@ -1,0 +1,208 @@
+body {
+    background-color: #0f1112;
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    max-width: 1200px;
+    width: 100%;
+    padding: 0 16px;   
+    margin: 0 auto;    
+    box-sizing: border-box;
+}
+
+.user-navbar {
+    width: 100%;
+    height: 64px;
+    background-color: #16181a;
+    border-bottom: 1px solid #333;
+    display: flex;
+    justify-content: center; 
+    align-items: center;
+    position: fixed; 
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 9999;
+}
+
+.navbar-inner {
+    width: 90%;
+    max-width: 1200px; 
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 0 auto;
+}
+
+.navbar-logo {
+    font-size: 24px;
+    font-weight: 700;
+    color: #ffffff;
+    margin: 0;
+}
+
+.logout-btn {
+    background-color: #d32f2f;
+    color: white;
+    border: none;
+    padding: 8px 20px;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.dashboard-wrapper {
+    width: 90%;
+    max-width: 1200px;
+    margin: 6px auto !important; 
+    color: #fff;
+}
+
+.header-section { margin-bottom: 12px !important; }
+.page-title { font-size: 28px; margin-bottom: 5px; }
+.page-desc { color: #aaa; margin-top: 0; }
+.sub-text { color: #888; font-size: 14px; margin-bottom: 15px; }
+
+/* GRID SYSTEM */
+.dashboard-columns {
+    display: flex;
+    gap: 56px; /* lebih lebar supaya kedua kartu tidak saling menempel */
+    align-items: flex-start;
+}
+
+.left-column {
+    width: 320px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    align-items: flex-start; 
+}
+
+.right-column { flex: 1; }
+
+.upload-row { display: none; }
+.upload-card { flex: 0 0 auto !important; }
+
+/* CARDS */
+.card {
+    background: #1e2022;
+    border: 1px solid #333;
+    border-radius: 12px;
+    padding: 25px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+
+.file-input {
+    width: 100%;
+    padding: 10px;
+    background: #111;
+    color: white;
+    border: 1px solid #444;
+    border-radius: 6px;
+    margin-bottom: 15px;
+}
+
+.btn-primary {
+    width: 100%;
+    padding: 12px;
+    background: #007bff;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.btn-primary:hover { background: #0056b3; }
+
+/* HISTORY CARD (Kanan) */
+.history-card {
+    flex: 1; 
+    overflow: auto; 
+}
+
+/* TABLE */
+.table-responsive { width: 100%; overflow-x: auto; }
+.custom-table { width: 100%; border-collapse: collapse; color: #ddd; }
+.custom-table th { text-align: left; padding: 12px; border-bottom: 2px solid #444; background: #25282b; }
+.custom-table td { padding: 12px; border-bottom: 1px solid #333; font-size: 14px; }
+.text-center { text-align: center; }
+
+/* STATUS BADGES */
+.badge { padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: bold; }
+.badge.pending { background: #ffc107; color: #000; }
+.badge.success { background: #28a745; color: #fff; }
+.badge.danger { background: #dc3545; color: #fff; }
+.link-download { color: #4fc3f7; text-decoration: none; font-size: 13px; }
+
+@media (max-width: 768px) {
+    .dashboard-grid {
+        flex-direction: column; 
+    }
+
+    .upload-card {
+        width: 100%;
+        flex: none;
+    }
+
+    .history-card {
+        width: 100%;
+    }
+
+    .dashboard-wrapper {
+        width: 95%; 
+        margin-top: 20px;
+    }
+}
+
+body { padding-top: 64px; }
+
+@media (min-width: 769px) {
+    html, body { height: 100%; overflow: hidden; }
+
+    .dashboard-wrapper {
+        min-height: calc(100vh - 64px);
+        margin-top: 0; 
+        display: flex;
+        align-items: flex-start;
+    }
+
+    .dashboard-columns {
+        width: 100%;
+        display: flex;
+        gap: 30px;
+        align-items: flex-start;
+    }
+
+    .left-column {
+        height: auto;
+        box-sizing: border-box;
+        margin-left: -16px; /* offset supaya sejajar dengan logo di navbar */
+    }
+
+    .right-column {
+        height: calc(100vh - 64px);
+        box-sizing: border-box;
+        padding-left: 20px; /* beri ruang agar history-card tidak nempel/menindih */
+    }
+
+    .left-column .upload-card {
+        max-height: none; 
+        overflow: visible;
+        align-self: flex-start;
+        width: 100%;
+        flex: 0 0 auto !important;
+    }
+
+    .right-column .history-card {
+        max-height: calc(100% - 40px);
+        overflow: auto;
+        width: 100%;
+        max-width: 760px; 
+        margin-top: 18px;
+        margin-left: 12px; /* jarak ekstra dari kiri agar tidak menempel */
+    }
+}
