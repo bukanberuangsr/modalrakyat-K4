@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use DB;
+use App\Models\User;
 
 class AdminController extends Controller
 {
@@ -104,6 +105,58 @@ class AdminController extends Controller
         return response()->json([
             'message' => 'Status verifikasi diperbarui.',
             'status'  => $req->status
+        ]);
+    }
+
+    // Menampilkan Data-Data di Dashboard Admin
+    public function dashboard()
+    {
+        $uploads = DB::table('uploads')
+            ->join('users', 'uploads.user_id', '=', 'users.id')
+            ->select(
+                'uploads.id',
+                'uploads.type',
+                'uploads.status',
+                'uploads.created_at',
+                'users.name as user_name'
+            )
+            ->orderBy('uploads.created_at', 'desc')
+            ->get();
+
+        return view('dashboardAdmin', compact('uploads'));
+    }
+
+    // Mengambil Ringkasan Data dari Database
+    public function stats()
+    {
+        return response()->json([
+            'users' => DB::table('users')->count(),
+            'uploads' => DB::table('uploads')->count(),
+            'verified' => DB::table('uploads')->where('status', 'verified')->count()
+        ]);
+    }
+
+    // Menampilkan Semua Users
+    public function users()
+    {
+        $users = User::all();
+        return view('adminUsers', compact('users'));
+    }
+
+    // Update Role Users
+    public function updateRole(Request $request, $id)
+    {
+        $request->validate([
+            'role' => 'required|in:admin,verifikator,user,supervisor'
+        ]);
+
+        $user = User::findOrFail($id);
+        $user->role = $request->role;
+        $user->save();
+
+        return response()->json([
+            'message' => 'Role pengguna berhasil diperbarui',
+            'role' => $user->role
         ]);
     }
 }
