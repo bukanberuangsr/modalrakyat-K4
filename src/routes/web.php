@@ -7,40 +7,45 @@ use Illuminate\Support\Facades\Route;
 use App\Models\Upload;
 
 Route::get('/', function () {
-    // return view('welcome');
     return redirect('/login');
 });
 
 Route::middleware('auth:api')->group(function () {
     Route::get('/upload/presigned', [UploadController::class, 'getPresignedUrl']);
-    Route::get('/upload/validate', [UploadController::class, 'validateUploadFile']);
-    Route::get('/admin/file/{filename}', [AdminController::class, 'getFile'])->middleware('role:admin');
+    Route::post('/upload/validate', [UploadController::class, 'validateUploadFile']);
+    Route::get('/my/upload/', [UploadController::class, 'myUploads']);
 });
 
-// Login (GET)
-Route::get('/login', [AuthController::class, 'index'])
-    ->name('login');
+Route::middleware(['auth:api', 'role:admin'])->group(function(){
+    Route::get('/admin/file/{filename}', [AdminController::class, 'getFile']);
+    Route::get('/admin/uploads', [AdminController::class, 'listUploads']);
+    Route::get('/admin/uploads/{id}', [AdminController::class, 'viewUpload']);
+    Route::get('/admin/uploads/{id}/verify', [AdminController::class, 'verifyUpload']);
+});
 
-// Login (POST)
+Route::get('/login', [AuthController::class, 'index'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
-
-// Register (GET)
 Route::get('/register', [AuthController::class, 'registerView'])->name('register');
-
-// Register (POST)
 Route::post('/register', [AuthController::class, 'register'])->name('register.submit');
+Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
-// Logout
-Route::post('/logout', [AuthController::class, 'logout'])
-    ->name('logout');
+// Dashboard Admin
+Route::middleware(['auth', 'role:admin'])->group(function () {
+    Route::get('/dashboard/admin', [AdminController::class, 'dashboard'])
+        ->name('dashboard');
+});
 
-Route::get('/dashboard/admin', function () {
-    return view('dashboardAdmin');
-})->name('dashboard');
+// Manajemen Users
+Route::middleware(['auth', 'role:admin'])->group(function () {
+    Route::get('/dashboard/users', [AdminController::class, 'users'])
+        ->name('admin.users');
+});
 
-Route::get('/dashboard/users', function () {
-    return view('adminUsers');
-})->name('admin.users');
+// Update Role Users
+Route::middleware(['auth', 'role:admin'])->group(function () {
+    Route::post('/user/{id}/role', [AdminController::class, 'updateRole'])
+        ->name('user.updateRole');
+});
 
 
 Route::get('/home', function () {

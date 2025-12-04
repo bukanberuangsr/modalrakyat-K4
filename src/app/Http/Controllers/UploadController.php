@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use DB;
 
 class UploadController extends Controller
 {
@@ -39,16 +40,26 @@ class UploadController extends Controller
 
     // Validasi dan simpan setelah upload
     public function upload(Request $request)
-{
-    // Validasi file form biasa
-    $request->validate([
-        'file' => 'required|mimes:pdf,jpg,jpeg,png|max:2048'
-    ]);
+    {
+        // Validasi file form biasa
+        $request->validate([
+            'file' => 'required|mimes:pdf,jpg,jpeg,png|max:2048'
+        ]);
 
-    // Simpan ke storage lokal (public/uploads)
-    $path = $request->file('file')->store('uploads', 'public');
+        // Simpan ke storage lokal (public/uploads)
+        $path = $request->file('file')->store('uploads', 'public');
 
-    return back()->with('success', 'File berhasil diupload! Lokasi: ' . $path);
-}
+        return back()->with('success', 'File berhasil diupload! Lokasi: ' . $path);
+    }
+    
+    // User dapat melihat apa yang di Upload
+    public function myUploads(Request $req)
+    {
+        $uploads = DB::table('uploads')
+            ->where('user_id', $req->user()->id)
+            ->orderBy('created_at', 'desc')
+            ->get();
 
+        return response()->json($uploads);
+    }
 }
