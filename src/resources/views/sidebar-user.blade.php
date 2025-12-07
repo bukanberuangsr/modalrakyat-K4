@@ -2,16 +2,16 @@
     <h2 class="logo">ModalRakyat</h2>
 
     <ul class="menu">
-        <a href="/dashboard/admin" class="menu-item">
-            <li class="{{ Route::is('dashboard') ? 'active' : '' }}">Dashboard</li>
+        <a href="/home" class="menu-item">
+            <li class="{{ Route::is('home') ? 'active' : '' }}">Dashboard</li>
         </a>
 
-        <a href="{{ route('admin.users') }}" class="menu-item">
-            <li class="{{ Route::is('admin.users') ? 'active' : '' }}">Data Pengguna</li>
+        <a href="/profile" class="menu-item">
+            <li class="{{ Route::is('profile') ? 'active' : '' }}">Profil Saya</li>
         </a>
     </ul>
 
-    <button id="btnLogout" class="btn-logout">Keluar</button>
+    <button id="btnLogout" class="btn-logout">Logout</button>
 </div>
 
 <script>

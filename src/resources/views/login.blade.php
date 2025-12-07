@@ -75,7 +75,6 @@ async function login(event) {
     if (result.user.role === "admin") {
         window.location.href = "/dashboard/admin";
     } else {
-        alert("Login berhasil, tapi Anda bukan admin.");
         window.location.href = "/home";
     }
 }
