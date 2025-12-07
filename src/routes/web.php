@@ -4,6 +4,7 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UploadController;
 use Illuminate\Support\Facades\Route;
+use App\Models\Upload;
 
 Route::get('/', function () {
     return redirect('/login');
@@ -45,3 +46,15 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::post('/user/{id}/role', [AdminController::class, 'updateRole'])
         ->name('user.updateRole');
 });
+
+
+Route::get('/home', function () {
+    // Sementara kosong dulu sampai tabel Upload & modelnya jadi
+    $uploads = []; 
+    return view('home', compact('uploads'));
+})->name('home');
+
+
+// Upload Dokumen
+Route::post('/upload/document', [UploadController::class, 'upload'])
+    ->name('upload.document');

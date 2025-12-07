@@ -39,33 +39,19 @@ class UploadController extends Controller
     }
 
     // Validasi dan simpan setelah upload
-    public function validateUploadFile(Request $req)
+    public function upload(Request $request)
     {
-        $fileName = $req->file_name;
-
-        if (!Storage::disk('s3')->exists($fileName)) {
-            return response()->json(['error'=>'File tidak ditemukan']);
-        }
-
-        $stream = Storage::disk('s3')->readStream($fileName);
-        $hash = hash_file('sha256', stream_get_meta_data($stream)['uri']);
-        $size = Storage::disk('s3')->size($fileName);
-
-        // Simpan ke database
-        DB::table('uploads')->insert([
-            'user_id'   => $req->user()->id,
-            'file_name' => $fileName,
-            'file_hash' => $hash,
-            'size'      => $size,
-            'type'      => $req->type ?? 'unknown',
-            'status'    => 'pending', // default KYC status
-            'created_at' => now(),
-            'updated_at' => now()
+        // Validasi file form biasa
+        $request->validate([
+            'file' => 'required|mimes:pdf,jpg,jpeg,png|max:2048'
         ]);
 
-        return response()->json(['status' => 'validated']);
-    }
+        // Simpan ke storage lokal (public/uploads)
+        $path = $request->file('file')->store('uploads', 'public');
 
+        return back()->with('success', 'File berhasil diupload! Lokasi: ' . $path);
+    }
+    
     // User dapat melihat apa yang di Upload
     public function myUploads(Request $req)
     {
