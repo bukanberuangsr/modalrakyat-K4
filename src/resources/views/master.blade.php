@@ -40,5 +40,25 @@
             }
         }
     </script>
+
+    @if(auth('web')->check())
+    <script>
+        // Ensure client-side token/user exist when server session is authenticated
+        try {
+            const user = {
+                id: {{ (int) auth('web')->id() }},
+                name: "{{ addslashes(auth('web')->user()->name ?? '') }}",
+                email: "{{ addslashes(auth('web')->user()->email ?? '') }}",
+                role: "{{ addslashes(auth('web')->user()->role ?? '') }}"
+            };
+            localStorage.setItem('token', 'session');
+            localStorage.setItem('user', JSON.stringify(user));
+        } catch (e) {
+            console.warn('Could not set localStorage from server auth', e);
+        }
+    </script>
+    @endif
+
+    @yield('scripts')
 </body>
 </html>
