@@ -10,7 +10,7 @@
         <h2 class="auth-title">Masuk</h2>
         <p class="auth-subtitle">silakan login ke akun Anda</p>
 
-        <form onsubmit="login(event)">
+        <form id="loginForm" onsubmit="handleLogin(event)">
             @csrf
 
             <label>Email</label>
@@ -44,39 +44,52 @@ function togglePassword() {
         : "{{ asset('icons/eye.svg') }}";
 }
 
-async function login(event) {
+async function handleLogin(event) {
     event.preventDefault();
 
-    const email = document.querySelector('input[name="email"]').value;
-    const password = document.querySelector('input[name="password"]').value;
+    const form = document.getElementById('loginForm');
+    const email = form.querySelector('input[name="email"]').value;
+    const password = form.querySelector('input[name="password"]').value;
+    const token = form.querySelector('input[name="_token"]').value;
 
-    const response = await fetch("/login", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "Accept": "application/json",
-            "X-CSRF-TOKEN": "{{ csrf_token() }}"
-        },
-        credentials: "same-origin",
-        body: JSON.stringify({ email, password })
-    });
+    try {
+        const response = await fetch("/login", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json",
+                "X-CSRF-TOKEN": token
+            },
+            credentials: "same-origin",
+            body: JSON.stringify({ email, password })
+        });
 
-    const result = await response.json();
+        const result = await response.json();
 
-    if (!response.ok) {
-        alert("Email atau password salah!");
-        return;
-    }
+        if (!response.ok || !result.success) {
+            alert(result.error || "Email atau password salah!");
+            return;
+        }
 
-    // Simpan token JWT
-    localStorage.setItem("token", result.token);
+        // Login berhasil, redirect ke halaman yang sesuai
+        // Simpan info user & token ke localStorage agar dashboard (yang menggunakan JWT client-side)
+        if (result.user) {
+            try {
+                localStorage.setItem('user', JSON.stringify(result.user));
+            } catch (e) { console.warn('Could not save user to localStorage', e); }
+        }
 
-    // Redirect jika admin
-    if (result.user.role === "admin") {
-        window.location.href = "/dashboard/admin";
-    } else {
-        alert("Login berhasil, tapi Anda bukan admin.");
+        // Jika server mengembalikan token (JWT), simpan. Jika tidak, simpan placeholder supaya front-end tidak auto-redirect.
+        const tokenToStore = result.token ? result.token : 'session';
+        try { localStorage.setItem('token', tokenToStore); } catch (e) { console.warn('Could not save token', e); }
+
+        console.log("Login success, redirecting to:", result.redirect_url);
+        window.location.href = result.redirect_url;
+    } catch (error) {
+        console.error('Login error:', error);
+        alert('Terjadi kesalahan saat login');
     }
 }
 </script>
+
 @endsection
