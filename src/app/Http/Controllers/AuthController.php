@@ -23,18 +23,48 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $credentials = $request->only('email', 'password');
+        \Log::info('Login attempt', ['email' => $credentials['email']]);
 
-        if (!$token = auth()->attempt($credentials)) {
-            return response()->json(['error' => 'Unauthorized'], 401);
+        // Pertama coba gunakan guard 'api' (JWT) bila tersedia
+        try {
+            if ($token = @auth('api')->attempt($credentials)) {
+                $user = auth('api')->user();
+                return response()->json([
+                    'token' => $token,
+                    'type'  => 'bearer',
+                    'user'  => $user,
+                ]);
+            }
+        } catch (\Throwable $e) {
+            // jika jwt guard belum terpasang/konfigurasi, lanjut ke session guard
         }
 
-        auth()->login(auth()->user());
+        // Fallback: gunakan session-based login (web guard) sehingga form web tetap berfungsi
+        $attemptResult = auth('web')->attempt($credentials);
+        \Log::info('Web guard attempt result', ['result' => $attemptResult ? 'success' : 'failed']);
+        
+        if ($attemptResult) {
+            $user = auth('web')->user();
+            \Log::info('Login success', ['user_id' => $user->id, 'role' => $user->role, 'authenticated' => auth('web')->check()]);
 
+            // SELALU return JSON, jangan redirect di server
+            // JavaScript di client akan handle redirect
+            $redirectUrl = $user->role === 'admin' ? '/dashboard/admin' : '/home';
+            \Log::info('Login will redirect to', ['url' => $redirectUrl]);
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Login berhasil',
+                'user'    => $user,
+                'redirect_url' => $redirectUrl,
+            ]);
+        }
+
+        \Log::info('Login failed - credentials invalid');
         return response()->json([
-            'token' => $token,
-            'type'  => 'bearer',
-            'user'  => auth()->user(),
-        ]);
+            'success' => false,
+            'error' => 'Email atau password salah'
+        ], 401);
     }
 
     // Register

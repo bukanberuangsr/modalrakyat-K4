@@ -57,7 +57,7 @@
                         @foreach ($uploads as $item)
                             <tr>
                                 <td>{{ $item->user_name }}</td>
-                                <td>{{ strtoupper($item->file_type) }}</td>
+                                <td>{{ strtoupper($item->type) }}</td>
 
                                 <td>
                                     @if ($item->status === 'pending')
@@ -87,45 +87,30 @@
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
-    const token = localStorage.getItem("token");
+    // Set admin name from server-side user if available
+    const adminName = document.getElementById("adminName");
+    @if(auth('web')->check())
+        if (adminName) adminName.innerText = "{{ addslashes(auth('web')->user()->name) }}";
+    @endif
 
-    // Jika token tidak ada, kembalikan ke halaman login
-    if (!token) {
-        window.location.href = "/login";
-        return;
-    }
+    // Fetch dashboard stats using session-based auth (no client JWT required)
+    (async function(){
+        try {
+            const res = await fetch('/api/admin/stats', { credentials: 'same-origin' });
+            if (!res.ok) {
+                console.warn('Failed to fetch admin stats', res.status);
+                return;
+            }
+            const data = await res.json();
 
-    // Ambil role user dari localStorage (disimpan saat login)
-    const userData = localStorage.getItem("user");
-    if (userData) {
-        const user = JSON.parse(userData);
-
-        // Cegah user non-admin masuk
-        if (user.role !== "admin") {
-            alert("Anda bukan admin!");
-            window.location.href = "/home";
-            return;
+            document.querySelector('.card-number.total-users').innerText = data.total_users;
+            document.querySelector('.card-number.pending').innerText = data.pending_docs;
+            document.querySelector('.card-number.rejected').innerText = data.rejected_docs;
+            document.querySelector('.card-number.encrypted').innerText = data.encrypted_docs;
+        } catch (e) {
+            console.warn('Error fetching admin stats', e);
         }
-
-        // Tampilkan nama admin jika tersedia elemen
-        const adminName = document.getElementById("adminName");
-        if (adminName) adminName.innerText = user.name;
-    }
-});
-
-document.addEventListener("DOMContentLoaded", async () => {
-    const token = localStorage.getItem("token");
-
-    const res = await fetch("/api/admin/stats", {
-        headers: { Authorization: `Bearer ${token}` }
-    });
-
-    const data = await res.json();
-
-    document.querySelector(".card-number.total-users").innerText = data.total_users;
-    document.querySelector(".card-number.pending").innerText = data.pending_docs;
-    document.querySelector(".card-number.rejected").innerText = data.rejected_docs;
-    document.querySelector(".card-number.encrypted").innerText = data.encrypted_docs;
+    })();
 });
 </script>
 
