@@ -3,11 +3,11 @@
 
     <ul class="menu">
         <a href="/dashboard/admin" class="menu-item">
-            <li>Dashboard</li>
+            <li class="{{ Route::is('dashboard') ? 'active' : '' }}">Dashboard</li>
         </a>
 
         <a href="{{ route('admin.users') }}" class="menu-item">
-            <li>Data Pengguna</li>
+            <li class="{{ Route::is('admin.users') ? 'active' : '' }}">Data Pengguna</li>
         </a>
     </ul>
 
