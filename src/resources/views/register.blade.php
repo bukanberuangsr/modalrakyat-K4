@@ -39,13 +39,18 @@
 <script>
 document.getElementById("authForm").addEventListener("submit", async function(e) {
     e.preventDefault();
+    register();
 
     const formData = new FormData(this);
     const csrf = document.querySelector('meta[name="csrf-token"]').content;
 
     const response = await fetch("{{ route('register.submit') }}", {
         method: "POST",
-        headers: { "X-CSRF-TOKEN": csrf },
+        headers: {
+            "X-CSRF-TOKEN": csrf,
+            "Accept": "application/json",
+            "X-Requested-With": "XMLHttpRequest"
+        },
         body: formData
     });
 
@@ -70,6 +75,49 @@ function togglePassword() {
     icon.src = isHidden
         ? "{{ asset('icons/eye-off.svg') }}"
         : "{{ asset('icons/eye.svg') }}";
+}
+
+async function register() {
+    const form = document.getElementById("authForm");
+    const alertBox = document.getElementById("alert-box");
+    const csrf = document.querySelector('meta[name="csrf-token"]').content;
+
+    const formData = new FormData(form);
+
+    try {
+        const response = await fetch("{{ route('register.submit') }}", {
+            method: "POST",
+            headers: { "X-CSRF-TOKEN": csrf },
+            body: formData
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+            alertBox.innerHTML = `
+                <div class="alert alert-success">
+                    ${result.message}
+                </div>
+            `;
+
+            // reset form
+            form.reset();
+
+        } else {
+            alertBox.innerHTML = `
+                <div class="alert alert-danger">
+                    ${result.error || result.message}
+                </div>
+            `;
+        }
+
+    } catch (err) {
+        alertBox.innerHTML = `
+            <div class="alert alert-danger">
+                Terjadi kesalahan pada server.
+            </div>
+        `;
+    }
 }
 </script>
 @endsection
