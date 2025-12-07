@@ -16,31 +16,23 @@
 
 <script>
 document.getElementById("btnLogout").addEventListener("click", async () => {
-    const token = localStorage.getItem("token");
-
-    if (!token) {
-        window.location.href = "/login";
-        return;
-    }
-
     try {
-        await fetch("/logout", {
-            method: "POST",
+        await fetch('/logout', {
+            method: 'POST',
             headers: {
-                "Authorization": "Bearer " + token,
-                "Accept": "application/json",
-                "X-CSRF-TOKEN": "{{ csrf_token() }}"
-            }
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            credentials: 'same-origin'
         });
     } catch (e) {
-        console.warn("Logout error:", e);
+        console.warn('Logout error:', e);
     }
 
-    // Hapus data user dan token
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
+    // Hapus data lokal jika ada
+    try { localStorage.removeItem('token'); localStorage.removeItem('user'); } catch(e){}
 
     // Mengarahkan ke login
-    window.location.href = "/login";
+    window.location.href = '/login';
 });
 </script>
