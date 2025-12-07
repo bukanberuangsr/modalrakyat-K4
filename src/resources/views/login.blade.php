@@ -76,6 +76,7 @@ async function login(event) {
         window.location.href = "/dashboard/admin";
     } else {
         alert("Login berhasil, tapi Anda bukan admin.");
+        window.location.href = "/home";
     }
 }
 </script>

@@ -103,7 +103,7 @@ document.addEventListener("DOMContentLoaded", () => {
         // Cegah user non-admin masuk
         if (user.role !== "admin") {
             alert("Anda bukan admin!");
-            window.location.href = "/";
+            window.location.href = "/home";
             return;
         }
 
