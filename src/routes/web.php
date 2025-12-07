@@ -10,17 +10,37 @@ Route::get('/', function () {
     return redirect('/login');
 });
 
-Route::middleware('auth:api')->group(function () {
+Route::middleware([
+    \Illuminate\Cookie\Middleware\EncryptCookies::class,
+    \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
+    \Illuminate\Session\Middleware\StartSession::class,
+    'auth'
+])->group(function () {
+    Route::get('/whoami', function () {
+        $user = auth('web')->user();
+        return response()->json([
+            'id' => auth('web')->id(),
+            'email' => $user ? $user->email : null,
+            'name' => $user ? $user->name : null
+        ]);
+    });
     Route::get('/upload/presigned', [UploadController::class, 'getPresignedUrl']);
     Route::post('/upload/validate', [UploadController::class, 'validateUploadFile']);
     Route::get('/my/upload/', [UploadController::class, 'myUploads']);
 });
 
-Route::middleware(['auth:api', 'role:admin'])->group(function(){
+Route::middleware([
+    \Illuminate\Cookie\Middleware\EncryptCookies::class,
+    \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
+    \Illuminate\Session\Middleware\StartSession::class,
+    'auth', 'role:admin'
+])->group(function(){
     Route::get('/admin/file/{filename}', [AdminController::class, 'getFile']);
     Route::get('/admin/uploads', [AdminController::class, 'listUploads']);
-    Route::get('/admin/uploads/{id}', [AdminController::class, 'viewUpload']);
+    Route::get('/admin/uploads/{id}', [AdminController::class, 'viewUploads']);
     Route::get('/admin/uploads/{id}/verify', [AdminController::class, 'verifyUpload']);
+    Route::get('/admin/uploads/{id}/download-proxy', [AdminController::class, 'downloadProxy']);
+    Route::get('/admin/uploads/{id}/meta', [AdminController::class, 'meta']);
 });
 
 Route::get('/login', [AuthController::class, 'index'])->name('login');
@@ -30,27 +50,53 @@ Route::post('/register', [AuthController::class, 'register'])->name('register.su
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 // Dashboard Admin
-Route::middleware(['auth', 'role:admin'])->group(function () {
+Route::middleware([
+    \Illuminate\Cookie\Middleware\EncryptCookies::class,
+    \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
+    \Illuminate\Session\Middleware\StartSession::class,
+    'auth', 'role:admin'
+])->group(function () {
     Route::get('/dashboard/admin', [AdminController::class, 'dashboard'])
         ->name('dashboard');
 });
 
 // Manajemen Users
-Route::middleware(['auth', 'role:admin'])->group(function () {
+Route::middleware([
+    \Illuminate\Cookie\Middleware\EncryptCookies::class,
+    \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
+    \Illuminate\Session\Middleware\StartSession::class,
+    'auth', 'role:admin'
+])->group(function () {
     Route::get('/dashboard/users', [AdminController::class, 'users'])
         ->name('admin.users');
 });
 
 // Update Role Users
-Route::middleware(['auth', 'role:admin'])->group(function () {
+Route::middleware([
+    \Illuminate\Cookie\Middleware\EncryptCookies::class,
+    \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
+    \Illuminate\Session\Middleware\StartSession::class,
+    'auth', 'role:admin'
+])->group(function () {
     Route::post('/user/{id}/role', [AdminController::class, 'updateRole'])
         ->name('user.updateRole');
 });
 
+Route::middleware([
+    \Illuminate\Cookie\Middleware\EncryptCookies::class,
+    \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
+    \Illuminate\Session\Middleware\StartSession::class,
+    'auth'
+])->get('/home', function (Request $request) {
+    // Ambil riwayat upload pengguna
+    $user = auth('web')->user();
+    $uploads = [];
+    if ($user) {
+        $uploads = Upload::where('user_id', $user->id)
+            ->orderBy('created_at', 'desc')
+            ->get();
+    }
 
-Route::get('/home', function () {
-    // Sementara kosong dulu sampai tabel Upload & modelnya jadi
-    $uploads = []; 
     return view('home', compact('uploads'));
 })->name('home');
 

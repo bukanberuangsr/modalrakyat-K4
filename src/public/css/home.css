@@ -56,7 +56,8 @@ body {
 .dashboard-wrapper {
     width: 90%;
     max-width: 1200px;
-    margin: 6px auto !important; 
+    margin: 6px auto !important;
+    padding-top: 80px;
     color: #fff;
 }
 
