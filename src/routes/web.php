@@ -100,6 +100,12 @@ Route::middleware([
     return view('home', compact('uploads'));
 })->name('home');
 
+// Profile User
+Route::middleware('auth')->group(function () {
+    Route::get('/profile', function () {
+        return view('profile');
+    })->name('profile');
+});
 
 // Upload Dokumen
 Route::post('/upload/document', [UploadController::class, 'upload'])

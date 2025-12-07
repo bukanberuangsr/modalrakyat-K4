@@ -369,3 +369,159 @@ body {
     text-decoration: none;
     color: inherit;
 }
+
+/* ============================= */
+/* USER DASHBOARD (HOME.BLADE)   */
+/* ============================= */
+
+/* Navbar */
+.user-navbar {
+    width: 100%;
+    background: #1b1b1b;
+    padding: 18px 40px;
+    border-radius: 40px 40px 0 0;
+    margin-bottom: 20px;
+}
+
+.navbar-inner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.navbar-logo {
+    font-size: 22px;
+    font-weight: 600;
+    margin: 0;
+}
+
+/* Layout Kolom */
+.dashboard-columns {
+    display: flex;
+    gap: 24px;
+    height: 100%;
+}
+
+.left-column,
+.right-column {
+    flex: 1;
+}
+
+/* Upload Card */
+.upload-card .sub-text {
+    color: #aaaaaa;
+    font-size: 14px;
+    margin-bottom: 18px;
+}
+
+.input-group {
+    margin-bottom: 16px;
+}
+
+.file-input {
+    width: 100%;
+    background: #2b2b2b;
+    border: none;
+    border-radius: 14px;
+    color: #eaeaea;
+    padding: 24px;
+    font-size: 14px;
+    max-width: 96%;
+}
+
+.btn-primary {
+    width: 100%;
+    background: #0e57c2;
+    border: none;
+    padding: 14px;
+    color: white;
+    border-radius: 50px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 15px;
+}
+
+.btn-primary:hover {
+    background: #093f8a;
+}
+
+.btn-upload {
+    padding: 8px 18px;
+    background: #0e57c2;
+    color: white;
+    font-weight: bold;
+    padding-left: 28px;
+    padding-right: 28px;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    font-size: 13px;
+}
+
+.btn-upload:hover {
+    background: #093f8a;
+}
+
+/* History Table */
+.table-responsive {
+    margin-top: 16px;
+    overflow-x: auto;
+}
+
+.custom-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.custom-table th {
+    background: #2b2b2b;
+    padding: 14px;
+    text-align: left;
+}
+
+.custom-table td {
+    padding: 14px;
+    border-bottom: 1px solid #2b2b2b;
+}
+
+/* Download link */
+.link-download {
+    color: #4a8bff;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.link-download:hover {
+    text-decoration: underline;
+}
+
+/* Empty state */
+.text-center {
+    text-align: center;
+    color: #888;
+}
+
+/* File input mengikuti style */
+.file-input {
+    width: 100%;
+    background: #2b2b2b;
+    border: none;
+    border-radius: 10px;
+    color: #fff;
+    padding: 12px;
+    font-size: 14px;
+}
+
+/* Sidebar menu link biar bersih */
+.menu-item {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    width: 100%;
+}
+
+/* Table kosong */
+.text-center {
+    text-align: center;
+    color: #888;
+}
