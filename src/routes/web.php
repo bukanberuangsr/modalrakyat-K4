@@ -14,7 +14,7 @@ Route::middleware([
     \Illuminate\Cookie\Middleware\EncryptCookies::class,
     \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
     \Illuminate\Session\Middleware\StartSession::class,
-    'auth'
+    'auth', 'throttle:30,1'
 ])->group(function () {
     Route::get('/whoami', function () {
         $user = auth('web')->user();
@@ -33,7 +33,7 @@ Route::middleware([
     \Illuminate\Cookie\Middleware\EncryptCookies::class,
     \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
     \Illuminate\Session\Middleware\StartSession::class,
-    'auth', 'role:admin'
+    'auth', 'role:admin', 'throttle:60,1'
 ])->group(function(){
     Route::get('/admin/file/{filename}', [AdminController::class, 'getFile']);
     Route::get('/admin/uploads', [AdminController::class, 'listUploads']);
@@ -44,9 +44,9 @@ Route::middleware([
 });
 
 Route::get('/login', [AuthController::class, 'index'])->name('login');
-Route::post('/login', [AuthController::class, 'login']);
+Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:5,1');
 Route::get('/register', [AuthController::class, 'registerView'])->name('register');
-Route::post('/register', [AuthController::class, 'register'])->name('register.submit');
+Route::post('/register', [AuthController::class, 'register'])->name('register.submit')->middleware('throttle:5,1');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 // Dashboard Admin
@@ -54,7 +54,7 @@ Route::middleware([
     \Illuminate\Cookie\Middleware\EncryptCookies::class,
     \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
     \Illuminate\Session\Middleware\StartSession::class,
-    'auth', 'role:admin'
+    'auth', 'role:admin', 'throttle:60,1'
 ])->group(function () {
     Route::get('/dashboard/admin', [AdminController::class, 'dashboard'])
         ->name('dashboard');
@@ -65,7 +65,7 @@ Route::middleware([
     \Illuminate\Cookie\Middleware\EncryptCookies::class,
     \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
     \Illuminate\Session\Middleware\StartSession::class,
-    'auth', 'role:admin'
+    'auth', 'role:admin', 'throttle:60,1'
 ])->group(function () {
     Route::get('/dashboard/users', [AdminController::class, 'users'])
         ->name('admin.users');
@@ -76,7 +76,7 @@ Route::middleware([
     \Illuminate\Cookie\Middleware\EncryptCookies::class,
     \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
     \Illuminate\Session\Middleware\StartSession::class,
-    'auth', 'role:admin'
+    'auth', 'role:admin', 'throttle:60,1'
 ])->group(function () {
     Route::post('/user/{id}/role', [AdminController::class, 'updateRole'])
         ->name('user.updateRole');
@@ -86,7 +86,7 @@ Route::middleware([
     \Illuminate\Cookie\Middleware\EncryptCookies::class,
     \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
     \Illuminate\Session\Middleware\StartSession::class,
-    'auth'
+    'auth', 'throttle:30,1'
 ])->get('/home', function (Request $request) {
     // Ambil riwayat upload pengguna
     $user = auth('web')->user();
@@ -109,4 +109,4 @@ Route::middleware('auth')->group(function () {
 
 // Upload Dokumen
 Route::post('/upload/document', [UploadController::class, 'upload'])
-    ->name('upload.document');
+    ->name('upload.document')->middleware('throttle:10,1');

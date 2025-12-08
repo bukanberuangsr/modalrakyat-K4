@@ -10,7 +10,7 @@
         <h2 class="auth-title">Daftar</h2>
         <p class="auth-subtitle">Buat akun ModalRakyat Anda</p>
 
-        <div id="alert-box"></div>
+        <div id="alert-box" style="color: red; text-align: center;"></div>
 
         <form id="authForm">
             @csrf
