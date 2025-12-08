@@ -245,6 +245,23 @@ class AdminController extends Controller
         ]);
     }
 
+    // Menampilkan detail upload
+    public function showUpload($id)
+    {
+        $upload = DB::table('uploads')
+            ->leftJoin('users', 'uploads.user_id', '=', 'users.id')
+            ->select('uploads.*', 'users.name as user_name')
+            ->where('uploads.id', $id)
+            ->first();
+
+        if (!$upload) {
+            abort(404);
+        }
+
+        return view('admin.verify', compact('upload'));
+    }
+
+
     // Menampilkan Data-Data di Dashboard Admin
     public function dashboard()
     {

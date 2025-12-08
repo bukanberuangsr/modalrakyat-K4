@@ -37,9 +37,9 @@ Route::middleware([
 ])->group(function(){
     Route::get('/admin/file/{filename}', [AdminController::class, 'getFile']);
     Route::get('/admin/uploads', [AdminController::class, 'listUploads']);
-    Route::get('/admin/uploads/{id}', [AdminController::class, 'viewUploads']);
-    Route::get('/admin/uploads/{id}/verify', [AdminController::class, 'verifyUpload']);
-    Route::get('/admin/uploads/{id}/download-proxy', [AdminController::class, 'downloadProxy']);
+    Route::get('/admin/uploads/{id}', [AdminController::class, 'showUploads']);
+    Route::post('/admin/uploads/{id}/verify', [AdminController::class, 'verifyUpload'])->name('admin.verify.upload');
+    Route::post('/admin/uploads/{id}/download-proxy', [AdminController::class, 'downloadProxy']);
     Route::get('/admin/uploads/{id}/meta', [AdminController::class, 'meta']);
 });
 
