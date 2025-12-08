@@ -27,6 +27,9 @@ Route::middleware([
     Route::get('/upload/presigned', [UploadController::class, 'getPresignedUrl']);
     Route::post('/upload/validate', [UploadController::class, 'validateUploadFile']);
     Route::get('/my/upload/', [UploadController::class, 'myUploads']);
+    
+    // TAMBAHAN: Route untuk download file user
+    Route::get('/user/file/{id}', [UploadController::class, 'downloadFile'])->name('user.download');
 });
 
 Route::middleware([

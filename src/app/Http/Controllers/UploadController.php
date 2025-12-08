@@ -14,89 +14,74 @@ class UploadController extends Controller
     // Presigned URL untuk upload
     public function getPresignedUrl(Request $req)
     {
-        $uuid = Str::uuid()->toString() . '.jpg';
+        try {
+            // ambil ekstensi dari request (default jpg)
+            $ext = $req->input('ext', 'jpg');
+            $uuid = 'uploads/' . Str::uuid()->toString() . '.' . $ext;
 
-        $command = Storage::disk('s3')
-            ->getDriver()
-            ->getAdapter()
-            ->getClient()
-            ->getCommand(
-                'PutObject', [
-                    'Bucket' => env('AWS_BUCKET'),
-                    'Key' => $uuid,
-                    'ContentType' => 'image/jpeg'
-                    ]
-                );
+            $mime = match($ext) {
+                'pdf' => 'application/pdf',
+                'png' => 'image/png',
+                'jpg', 'jpeg' => 'image/jpeg',
+                default => 'application/octet-stream',
+            };
 
-        $presignedRequest = Storage::disk('s3')
-            ->getDriver()
-            ->getAdapter()
-            ->getClient()
-            ->createPresignedRequest($command, '+2 minute');
+            $client = Storage::disk('s3')->getDriver()->getAdapter()->getClient();
 
-        return response()->json([
-            'upload_url' => (string) $presignedRequest->getUri(),
-            'file_name' => $uuid
-        ]);
+            $command = $client->getCommand('PutObject', [
+                'Bucket' => env('AWS_BUCKET'),
+                'Key' => $uuid,
+                'ContentType' => $mime,
+            ]);
+
+            $presignedRequest = $client->createPresignedRequest($command, '+5 minutes');
+
+            return response()->json([
+                'upload_url' => (string) $presignedRequest->getUri(),
+                'file_name' => $uuid
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Presigned URL error: ' . $e->getMessage());
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
     }
 
     // Validasi dan simpan setelah upload
     public function upload(Request $request)
     {
-        // Validasi file form biasa
-        $request->validate([
-            'file' => 'required|mimes:pdf,jpg,jpeg,png|max:2048'
-        ]);
-
-        // Simpan ke storage lokal (public/uploads)
-        $path = $request->file('file')->store('uploads', 'public');
-
-        // Simpan metadata ke tabel uploads
         try {
-            $file = $request->file('file');
-            $fullPath = $path; // relative path in storage (e.g. uploads/abc.png)
-            $size = $file->getSize();
-            $hash = hash_file('sha256', $file->getRealPath());
+            // Validasi file form biasa
+            $request->validate([
+                'file' => 'required|mimes:pdf,jpg,jpeg,png|max:2048'
+            ]);
 
-            $upload = Upload::create([
+            $file = $request->file('file');
+            $fileName = 'uploads/' . Str::uuid() . '.' . $file->getClientOriginalExtension();
+            
+            // Upload langsung ke S3/MinIO
+            $stream = fopen($file->getRealPath(), 'r');
+            Storage::disk('s3')->put($fileName, $stream);
+            if (is_resource($stream)) {
+                fclose($stream);
+            }
+
+            // Simpan metadata ke database
+            $hash = hash_file('sha256', $file->getRealPath());
+            
+            Upload::create([
                 'user_id' => auth('web')->id(),
-                'file_name' => $fullPath,
+                'file_name' => $fileName,
                 'file_hash' => $hash,
-                'size' => $size,
+                'size' => $file->getSize(),
                 'type' => $request->input('type'),
             ]);
 
-            // Try to push the file to MinIO (s3 disk). If successful, delete local copy.
-            try {
-                if (Storage::disk('public')->exists($fullPath)) {
-                    $localFullPath = storage_path('app/public/' . $fullPath);
-                    if (file_exists($localFullPath)) {
-                        $stream = fopen($localFullPath, 'r');
-                        if ($stream !== false) {
-                            // Put to S3 using same key (uploads/xxx)
-                            Storage::disk('s3')->put($fullPath, $stream);
-                            if (is_resource($stream)) {
-                                fclose($stream);
-                            }
-
-                            // Update DB record to reflect it's stored on S3 (same file_name key)
-                            $upload->file_name = $fullPath;
-                            $upload->save();
-
-                            // Remove local copy to avoid duplicates
-                            Storage::disk('public')->delete($fullPath);
-                        }
-                    }
-                }
-            } catch (\Throwable $e) {
-                // Log s3 push failure but don't fail the request
-                Log::warning('Failed to push upload to S3/MinIO: ' . $e->getMessage());
-            }
+            return back()->with('success', 'File berhasil diupload!');
+            
         } catch (\Exception $e) {
-            Log::error('Failed saving upload metadata: ' . $e->getMessage());
+            Log::error('Upload error: ' . $e->getMessage());
+            return back()->with('error', 'Gagal upload: ' . $e->getMessage());
         }
-
-        return back()->with('success', 'File berhasil diupload! Lokasi: ' . $path);
     }
     
     // User dapat melihat apa yang di Upload
@@ -114,25 +99,55 @@ class UploadController extends Controller
     // Setelah upload ke S3 via presigned URL, panggil endpoint ini untuk mendaftarkan file
     public function validateUploadFile(Request $request)
     {
-        $request->validate([
-            'file_name' => 'required|string',
-            'size' => 'required|integer',
-            'file_hash' => 'required|string',
-            'type' => 'required|string'
-        ]);
+        try {
+            $request->validate([
+                'file_name' => 'required|string',
+                'size' => 'required|integer',
+                'file_hash' => 'required|string',
+                'type' => 'required|string'
+            ]);
 
-        $userId = auth('web')->id();
+            $userId = auth('web')->id();
 
-        Log::info('validateUploadFile called by user id: ' . ($userId ?? 'null'));
+            Log::info('validateUploadFile called by user id: ' . ($userId ?? 'null'));
 
-        $upload = Upload::create([
-            'user_id' => $userId,
-            'file_name' => $request->input('file_name'),
-            'file_hash' => $request->input('file_hash'),
-            'size' => $request->input('size'),
-            'type' => $request->input('type'),
-        ]);
+            $upload = Upload::create([
+                'user_id' => $userId,
+                'file_name' => $request->input('file_name'),
+                'file_hash' => $request->input('file_hash'),
+                'size' => $request->input('size'),
+                'type' => $request->input('type'),
+            ]);
 
-        return response()->json(['success' => true, 'upload_id' => $upload->id]);
+            return response()->json(['success' => true, 'upload_id' => $upload->id]);
+            
+        } catch (\Exception $e) {
+            Log::error('Validate upload error: ' . $e->getMessage());
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    // Download file untuk user
+    public function downloadFile($id)
+    {
+        try {
+            $upload = Upload::findOrFail($id);
+            
+            // Pastikan user hanya bisa download file miliknya sendiri
+            if ($upload->user_id !== auth('web')->id()) {
+                abort(403, 'Unauthorized');
+            }
+            
+            // Download dari S3
+            if (Storage::disk('s3')->exists($upload->file_name)) {
+                return Storage::disk('s3')->download($upload->file_name);
+            }
+            
+            abort(404, 'File tidak ditemukan');
+            
+        } catch (\Exception $e) {
+            Log::error('Download error: ' . $e->getMessage());
+            abort(500, 'Gagal download file');
+        }
     }
 }
