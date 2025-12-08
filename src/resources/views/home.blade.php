@@ -93,7 +93,7 @@
 <script>
     (function(){
         const presignedBtn = document.getElementById('btn-presigned');
-        const fileInput = document.getElementById('file');
+        const fileInput = document.querySelector('input[type="file"]'); // FIXED: ganti dari getElementById
         const typeSelect = document.getElementById('type');
 
         function arrayBufferToHex(buffer) {
@@ -120,57 +120,78 @@
             const file = fileInput.files[0];
             const type = typeSelect.value || 'KTP';
 
-            // minta presigned url
-            const resp = await fetch('/upload/presigned', { credentials: 'same-origin' });
-            if (!resp.ok) {
-                alert('Gagal mengambil presigned URL');
-                return;
+            try {
+                // minta presigned url
+                // minta presigned url
+                const resp = await fetch('/upload/presigned?ext=' + file.name.split('.').pop(), { 
+                    credentials: 'same-origin',
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+                
+                if (!resp.ok) {
+                    const error = await resp.json();
+                    console.error('Presigned URL error:', error);
+                    alert('Gagal mengambil presigned URL: ' + (error.error || 'Unknown error'));
+                    return;
+                }
+
+                const data = await resp.json();
+                const uploadUrl = data.upload_url;
+                const fileName = data.file_name;
+
+                console.log('Uploading to:', uploadUrl);
+
+                // PUT ke S3
+                const putResp = await fetch(uploadUrl, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': file.type || 'application/octet-stream'
+                    },
+                    body: file
+                });
+
+                if (!putResp.ok) {
+                    console.error('S3 upload failed:', putResp.status, putResp.statusText);
+                    alert('Gagal mengunggah file ke penyimpanan (status: ' + putResp.status + ')');
+                    return;
+                }
+
+                // compute hash and register
+                const hash = await computeHash(file);
+
+                const token = document.querySelector('input[name="_token"]').value;
+                const register = await fetch('/upload/validate', {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': token,
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        file_name: fileName,
+                        size: file.size,
+                        file_hash: hash,
+                        type: type
+                    })
+                });
+
+                if (!register.ok) {
+                    const error = await register.json();
+                    console.error('Validation error:', error);
+                    alert('Gagal mendaftarkan upload di server: ' + (error.error || 'Unknown error'));
+                    return;
+                }
+
+                alert('File berhasil diupload dan terdaftar!');
+                window.location.reload();
+                
+            } catch (error) {
+                console.error('Upload error:', error);
+                alert('Terjadi kesalahan: ' + error.message);
             }
-
-            const data = await resp.json();
-            const uploadUrl = data.upload_url;
-            const fileName = data.file_name;
-
-            // PUT ke S3
-            const putResp = await fetch(uploadUrl, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': file.type || 'image/jpeg'
-                },
-                body: file
-            });
-
-            if (!putResp.ok) {
-                alert('Gagal mengunggah file ke penyimpanan');
-                return;
-            }
-
-            // compute hash and register
-            const hash = await computeHash(file);
-
-            const token = document.querySelector('input[name="_token"]').value;
-            const register = await fetch('/upload/validate', {
-                method: 'POST',
-                credentials: 'same-origin',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': token
-                },
-                body: JSON.stringify({
-                    file_name: fileName,
-                    size: file.size,
-                    file_hash: hash,
-                    type: type
-                })
-            });
-
-            if (!register.ok) {
-                alert('Gagal mendaftarkan upload di server');
-                return;
-            }
-
-            alert('File berhasil diupload dan terdaftar');
-            window.location.reload();
         });
     })();
 </script>
