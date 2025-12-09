@@ -39,10 +39,10 @@
                 </div>
             </div>
 
-            <!-- Card Terenkripsi Tengah -->
+            <!-- Card Total Tengah -->
             <div class="card-center-wrapper">
                 <div class="card card-encrypted">
-                    <h3>Total Dokumen Terenkripsi</h3>
+                    <h3>Total Dokumen</h3>
                     <p class="card-number encrypted">0</p>
                 </div>
             </div>

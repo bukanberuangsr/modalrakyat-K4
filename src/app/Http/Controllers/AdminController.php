@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Log; 
+use Illuminate\Support\Facades\Log;
 use DB;
 use App\Models\User;
 
@@ -90,7 +90,7 @@ class AdminController extends Controller
                 'upload' => $upload,
                 'download_url' => (string) $presigned->getUri(),
             ]);
-            
+
         } catch (\Throwable $e) {
             Log::error('Presigned URL generation failed for upload ' . $id . ': ' . $e->getMessage());
 
@@ -119,7 +119,7 @@ class AdminController extends Controller
 
             // Generate presigned URL untuk download dari S3
             $client = Storage::disk('s3')->getDriver()->getAdapter()->getClient();
-            
+
             $extension = strtolower(pathinfo($upload->file_name, PATHINFO_EXTENSION));
             $contentType = match($extension) {
                 'jpg', 'jpeg' => 'image/jpeg',
@@ -127,19 +127,19 @@ class AdminController extends Controller
                 'pdf' => 'application/pdf',
                 default => 'application/octet-stream',
             };
-            
+
             $cmd = $client->getCommand('GetObject', [
                 'Bucket' => env('AWS_BUCKET'),
                 'Key' => $upload->file_name,
                 'ResponseContentType' => $contentType,
                 'ResponseContentDisposition' => 'attachment; filename="' . basename($upload->file_name) . '"'
             ]);
-            
+
             $presignedRequest = $client->createPresignedRequest($cmd, '+10 minutes');
-            
+
             // Redirect ke presigned URL
             return redirect((string) $presignedRequest->getUri());
-            
+
         } catch (\Throwable $e) {
             Log::error('Download proxy failed for ID ' . $id . ': ' . $e->getMessage());
             abort(500, 'Download gagal: ' . $e->getMessage());
@@ -190,7 +190,7 @@ class AdminController extends Controller
         }
     }
 
-    // Verifikasi dokumen   
+    // Verifikasi dokumen
     public function verifyUpload(Request $req, $id)
     {
         $req->validate([
@@ -220,16 +220,32 @@ class AdminController extends Controller
         ]);
     }
 
+    // Menampilkan detail upload
+    public function showUpload($id)
+    {
+        $upload = DB::table('uploads')
+            ->leftJoin('users', 'uploads.user_id', '=', 'users.id')
+            ->select('uploads.*', 'users.name as user_name')
+            ->where('uploads.id', $id)
+            ->first();
+
+        if (!$upload) {
+            abort(404);
+        }
+
+        return view('admin.verify', compact('upload'));
+    }
+
     // Menampilkan view detail upload (halaman HTML)
     public function detailUpload($id)
     {
         // Cek apakah upload ada
         $upload = DB::table('uploads')->where('id', $id)->first();
-        
+
         if (!$upload) {
             abort(404, 'Dokumen tidak ditemukan');
         }
-        
+
         // Render halaman HTML
         return view('adminDetail', ['uploadId' => $id]);
     }

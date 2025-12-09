@@ -44,12 +44,12 @@
                 </div>
 
                 <!-- Preview Dokumen -->
-                <div class="document-preview">
+                <!-- <div class="document-preview">
                     <h3>Preview Dokumen</h3>
                     <div id="previewContainer">
                         <p class="loading-text">Memuat dokumen...</p>
                     </div>
-                </div>
+                </div> -->
 
                 <!-- Form Verifikasi -->
                 <div class="verification-form">
