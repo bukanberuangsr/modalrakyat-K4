@@ -138,16 +138,39 @@ class UploadController extends Controller
                 abort(403, 'Unauthorized');
             }
             
-            // Download dari S3
+            // Generate presigned URL untuk download dari S3
             if (Storage::disk('s3')->exists($upload->file_name)) {
-                return Storage::disk('s3')->download($upload->file_name);
+                $client = Storage::disk('s3')->getDriver()->getAdapter()->getClient();
+                
+                $extension = strtolower(pathinfo($upload->file_name, PATHINFO_EXTENSION));
+                $contentType = match($extension) {
+                    'jpg', 'jpeg' => 'image/jpeg',
+                    'png' => 'image/png',
+                    'pdf' => 'application/pdf',
+                    default => 'application/octet-stream',
+                };
+                
+                $cmd = $client->getCommand('GetObject', [
+                    'Bucket' => env('AWS_BUCKET'),
+                    'Key' => $upload->file_name,
+                    'ResponseContentType' => $contentType,
+                    'ResponseContentDisposition' => 'attachment; filename="' . basename($upload->file_name) . '"'
+                ]);
+                
+                $presignedRequest = $client->createPresignedRequest($cmd, '+10 minutes');
+                
+                // Redirect ke presigned URL
+                return redirect((string) $presignedRequest->getUri());
             }
             
             abort(404, 'File tidak ditemukan');
             
         } catch (\Exception $e) {
-            Log::error('Download error: ' . $e->getMessage());
-            abort(500, 'Gagal download file');
+            Log::error('Download error for upload ' . $id . ': ' . $e->getMessage());
+            return response()->json([
+                'error' => 'Gagal download file',
+                'message' => $e->getMessage()
+            ], 500);
         }
     }
 }

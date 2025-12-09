@@ -29,11 +29,19 @@
                 </div>
 
                 <div class="card">
-                    <h3>Dokumen Ditolak</h3>
-                    <p class="card-number rejected">0</p>
+                    <h3>Dokumen Terverifikasi</h3>
+                    <p class="card-number verified">0</p>
                 </div>
 
                 <div class="card">
+                    <h3>Dokumen Ditolak</h3>
+                    <p class="card-number rejected">0</p>
+                </div>
+            </div>
+
+            <!-- Card Terenkripsi Tengah -->
+            <div class="card-center-wrapper">
+                <div class="card card-encrypted">
                     <h3>Total Dokumen Terenkripsi</h3>
                     <p class="card-number encrypted">0</p>
                 </div>
@@ -69,11 +77,11 @@
                                     @endif
                                 </td>
 
-                                <td>{{ \Carbon\Carbon::parse($item->created_at)->format('d M Y') }}</td>
+                                <td>{{ \Carbon\Carbon::parse($item->created_at)->timezone('Asia/Jakarta')->format('d M Y') }}</td>
 
                                 <td>
                                     <a href="/admin/uploads/{{ $item->id }}" class="btn-action">Periksa</a>
-                                    <a href="/admin/file/{{ $item->id }}" class="btn-download">Download</a>
+                                    <a href="/admin/uploads/{{ $item->id }}/download" class="btn-download" target="_blank">Download</a>
                                 </td>
                             </tr>
                         @endforeach
@@ -87,13 +95,12 @@
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
-    // Set admin name from server-side user if available
     const adminName = document.getElementById("adminName");
     @if(auth('web')->check())
         if (adminName) adminName.innerText = "{{ addslashes(auth('web')->user()->name) }}";
     @endif
 
-    // Fetch dashboard stats using session-based auth (no client JWT required)
+    // Fetch dashboard stats
     (async function(){
         try {
             const res = await fetch('/api/admin/stats', { credentials: 'same-origin' });
@@ -105,6 +112,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             document.querySelector('.card-number.total-users').innerText = data.total_users;
             document.querySelector('.card-number.pending').innerText = data.pending_docs;
+            document.querySelector('.card-number.verified').innerText = data.verified_docs || 0;
             document.querySelector('.card-number.rejected').innerText = data.rejected_docs;
             document.querySelector('.card-number.encrypted').innerText = data.encrypted_docs;
         } catch (e) {
