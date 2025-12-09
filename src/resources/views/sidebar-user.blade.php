@@ -11,7 +11,7 @@
         </a>
     </ul>
 
-    <button id="btnLogout" class="btn-logout">Logout</button>
+    <button id="btnLogout" class="btn-logout">Keluar</button>
 </div>
 
 <script>
