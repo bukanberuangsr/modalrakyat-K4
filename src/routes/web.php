@@ -32,13 +32,12 @@ Route::middleware([
             'name' => $user ? $user->name : null
         ]);
     });
-    
+
     Route::get('/upload/presigned', [UploadController::class, 'getPresignedUrl']);
     Route::post('/upload/validate', [UploadController::class, 'validateUploadFile']);
     Route::post('/upload/document', [UploadController::class, 'upload'])->name('upload.document')->middleware('throttle:10,1');
     Route::get('/my/upload/', [UploadController::class, 'myUploads']);
     Route::get('/user/file/{id}', [UploadController::class, 'downloadFile'])->name('user.download');
-    
     Route::get('/home', function () {
         $user = auth('web')->user();
         $uploads = [];
@@ -49,7 +48,6 @@ Route::middleware([
         }
         return view('home', compact('uploads'));
     })->name('home');
-    
     Route::get('/profile', function () {
         return view('profile');
     })->name('profile');
@@ -65,13 +63,13 @@ Route::middleware([
     // Dashboard & Users Management (HTML Views)
     Route::get('/dashboard/admin', [AdminController::class, 'dashboard'])->name('dashboard');
     Route::get('/dashboard/users', [AdminController::class, 'users'])->name('admin.users');
-    
+
     // API Endpoints (Return JSON for AJAX)
     Route::get('/api/admin/stats', [AdminController::class, 'stats']);
     Route::get('/api/admin/uploads/{id}/detail', [AdminController::class, 'viewUploads']);
     Route::post('/api/admin/uploads/{id}/verify', [AdminController::class, 'verifyUpload']);
     Route::post('/user/{id}/role', [AdminController::class, 'updateRole'])->name('user.updateRole');
-    
+
     // File Operations
     Route::get('/admin/uploads/{id}', [AdminController::class, 'detailUpload'])->name('admin.upload.detail'); // HTML view
     Route::get('/admin/uploads/{id}/download', [AdminController::class, 'downloadProxy'])->name('admin.upload.download'); // Download file
