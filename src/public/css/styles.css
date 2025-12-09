@@ -245,7 +245,7 @@ body {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 16px;
-    margin-bottom: 40px;
+    margin-bottom: 20px;
 }
 
 .card {
@@ -266,9 +266,22 @@ body {
     margin-top: 6px;
 }
 
+/* Card Center Wrapper */
+.card-center-wrapper {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 40px;
+}
+
+.card-encrypted {
+    width: calc(25% - 12px);
+}
+
+.total-users { color: #a855f7; }
 .pending { color: #ffb534; }
+.verified { color: #00ff99; }
 .rejected { color: #ff6262; }
-.encrypted { color: #00ff99; }
+.encrypted { color: #00d9ff; }
 
 /* Table */
 .table-container {
