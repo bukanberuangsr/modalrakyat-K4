@@ -37,15 +37,14 @@
                     <h3>Dokumen Ditolak</h3>
                     <p class="card-number rejected">0</p>
                 </div>
-            </div>
-
-            <!-- Card Total Tengah -->
-            <div class="card-center-wrapper">
-                <div class="card card-encrypted">
+                <!-- Card Total Tengah -->
+                <div class="card">
                     <h3>Total Dokumen</h3>
                     <p class="card-number encrypted">0</p>
                 </div>
             </div>
+
+            
 
             <!-- Table -->
             <div class="table-container">
