@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 use DB;
 use App\Models\User;
 
@@ -46,7 +47,7 @@ class AdminController extends Controller
         return response()->json($uploads);
     }
 
-    // Melihat upload spesifik dari user
+    // Melihat upload spesifik dari user (API endpoint untuk AJAX)
     public function viewUploads($id)
     {
         $upload = DB::table('uploads')
@@ -63,113 +64,89 @@ class AdminController extends Controller
             return response()->json(['error'=>'Data tidak ditemukan'], 404);
         }
 
-        // Buat presigned URL (bungkus dengan try/catch supaya aplikasi tidak crash
-        // jika adapter/SDK S3 belum terpasang). Jika gagal, kembalikan metadata
-        // dengan nama file sehingga front-end bisa menampilkan informasi.
         try {
             $client = Storage::disk('s3')->getDriver()->getAdapter()->getClient();
 
+            // Deteksi tipe file
+            $extension = strtolower(pathinfo($upload->file_name, PATHINFO_EXTENSION));
+            $contentType = match($extension) {
+                'jpg', 'jpeg' => 'image/jpeg',
+                'png' => 'image/png',
+                'gif' => 'image/gif',
+                'pdf' => 'application/pdf',
+                default => 'application/octet-stream',
+            };
+
             $cmd = $client->getCommand('GetObject', [
                 'Bucket' => env('AWS_BUCKET'),
-                'Key'    => $upload->file_name
+                'Key' => $upload->file_name,
+                'ResponseContentDisposition' => 'inline', // Inline untuk preview
+                'ResponseContentType' => $contentType
             ]);
 
-            $presigned = $client->createPresignedRequest($cmd, '+3 minutes');
+            $presigned = $client->createPresignedRequest($cmd, '+15 minutes'); // Lebih lama untuk preview
 
             return response()->json([
-                'upload'       => $upload,
+                'upload' => $upload,
                 'download_url' => (string) $presigned->getUri(),
             ]);
-        } catch (\Throwable $e) {
-            // Log the error for debugging, but don't expose internal traces to UI
-            logger()->warning('S3 presigned generation failed: ' . $e->getMessage());
 
-            $localAvailable = Storage::disk('public')->exists($upload->file_name);
+        } catch (\Throwable $e) {
+            Log::error('Presigned URL generation failed for upload ' . $id . ': ' . $e->getMessage());
+
             return response()->json([
-                'upload'             => $upload,
-                'download_url'       => null,
-                'error_message'      => 'S3 client not available. File name: ' . $upload->file_name,
-                'local_available'    => $localAvailable,
-                'local_download_url' => url('/admin/uploads/' . $upload->id . '/download-proxy')
+                'upload' => $upload,
+                'download_url' => null,
+                'error' => 'Gagal generate preview URL'
             ]);
         }
     }
 
-    // Fallback: proxy download via HTTP to MinIO endpoint (works if bucket allows public GET)
+    // Download dokumen via presigned URL
     public function downloadProxy($id)
     {
-        $upload = DB::table('uploads')
-            ->where('uploads.id', $id)
-            ->join('users', 'uploads.user_id', '=', 'users.id')
-            ->select('uploads.*', 'users.name as user_name', 'users.email as user_email')
-            ->first();
-
-        if (!$upload) {
-            return abort(404, 'Data tidak ditemukan');
-        }
-
-        // If file exists on local `public` disk, serve it directly from storage
-        if (Storage::disk('public')->exists($upload->file_name)) {
-            $localPath = storage_path('app/public/' . $upload->file_name);
-            if (file_exists($localPath)) {
-                return response()->download($localPath, basename($localPath));
-            }
-        }
-
-        // Otherwise try MinIO via HTTP (object must be public)
-        $endpoint = rtrim(env('AWS_ENDPOINT', ''), '/');
-        $bucket = env('AWS_BUCKET');
-        $key = ltrim($upload->file_name, '/');
-
-        if (empty($endpoint) || empty($bucket) || empty($key)) {
-            return abort(500, 'MinIO configuration incomplete');
-        }
-
-        $url = $endpoint . '/' . $bucket . '/' . $key;
-
-        // Try to fetch file contents via HTTP (no SDK). This will succeed only if
-        // MinIO bucket/object is accessible without S3 signing.
         try {
-            $context = stream_context_create([
-                'http' => [
-                    'timeout' => 10,
-                    'ignore_errors' => true,
-                ]
+            $upload = DB::table('uploads')->where('id', $id)->first();
+
+            if (!$upload) {
+                abort(404, 'Data tidak ditemukan');
+            }
+
+            // Cek apakah file ada di S3
+            if (!Storage::disk('s3')->exists($upload->file_name)) {
+                abort(404, 'File tidak ditemukan di storage');
+            }
+
+            // Generate presigned URL untuk download dari S3
+            $client = Storage::disk('s3')->getDriver()->getAdapter()->getClient();
+
+            $extension = strtolower(pathinfo($upload->file_name, PATHINFO_EXTENSION));
+            $contentType = match($extension) {
+                'jpg', 'jpeg' => 'image/jpeg',
+                'png' => 'image/png',
+                'pdf' => 'application/pdf',
+                default => 'application/octet-stream',
+            };
+
+            $cmd = $client->getCommand('GetObject', [
+                'Bucket' => env('AWS_BUCKET'),
+                'Key' => $upload->file_name,
+                'ResponseContentType' => $contentType,
+                'ResponseContentDisposition' => 'attachment; filename="' . basename($upload->file_name) . '"'
             ]);
 
-            $stream = @fopen($url, 'r', false, $context);
-            if ($stream === false) {
-                return abort(502, 'Unable to fetch file from MinIO.');
-            }
+            $presignedRequest = $client->createPresignedRequest($cmd, '+10 minutes');
 
-            $contents = stream_get_contents($stream);
-            fclose($stream);
+            // Redirect ke presigned URL
+            return redirect((string) $presignedRequest->getUri());
 
-            if ($contents === false || $contents === null) {
-                return abort(502, 'Empty response from MinIO');
-            }
-
-            $basename = basename($key);
-            $mime = null;
-            if (function_exists('finfo_open')) {
-                $f = finfo_open(FILEINFO_MIME_TYPE);
-                $mime = finfo_buffer($f, $contents);
-                finfo_close($f);
-            }
-
-            $headers = [
-                'Content-Type' => $mime ?: 'application/octet-stream',
-                'Content-Disposition' => 'attachment; filename="' . $basename . '"'
-            ];
-
-            return response($contents, 200, $headers);
         } catch (\Throwable $e) {
-            logger()->warning('Download proxy failed: ' . $e->getMessage());
-            return abort(500, 'Download proxy failed');
+            Log::error('Download proxy failed for ID ' . $id . ': ' . $e->getMessage());
+            abort(500, 'Download gagal: ' . $e->getMessage());
         }
     }
 
-    // Return HTTP headers for the object in MinIO so we can inspect Content-Type/size
+    // Return HTTP headers for the object in MinIO
     public function meta($id)
     {
         $upload = DB::table('uploads')
@@ -193,13 +170,11 @@ class AdminController extends Controller
         $url = $endpoint . '/' . $bucket . '/' . $key;
 
         try {
-            // Use get_headers to fetch response headers
             $headers = @get_headers($url, 1);
             if ($headers === false) {
                 return response()->json(['error' => 'Unable to fetch headers from MinIO', 'url' => $url], 502);
             }
 
-            // Normalize headers into simple keys we care about
             $result = [
                 'url' => $url,
                 'http_code' => substr($headers[0] ?? '', 9, 3),
@@ -210,7 +185,7 @@ class AdminController extends Controller
 
             return response()->json($result);
         } catch (\Throwable $e) {
-            logger()->warning('Meta fetch failed: ' . $e->getMessage());
+            Log::warning('Meta fetch failed: ' . $e->getMessage());
             return response()->json(['error' => 'Meta fetch failed'], 500);
         }
     }
@@ -240,7 +215,7 @@ class AdminController extends Controller
             ]);
 
         return response()->json([
-            'message' => 'Status verifikasi diperbarui.',
+            'message' => 'Status verifikasi berhasil diperbarui',
             'status'  => $req->status
         ]);
     }
@@ -262,7 +237,38 @@ class AdminController extends Controller
     }
 
 
-    // Menampilkan Data-Data di Dashboard Admin
+    // Menampilkan detail upload
+    public function showUpload($id)
+    {
+        $upload = DB::table('uploads')
+            ->leftJoin('users', 'uploads.user_id', '=', 'users.id')
+            ->select('uploads.*', 'users.name as user_name')
+            ->where('uploads.id', $id)
+            ->first();
+
+        if (!$upload) {
+            abort(404);
+        }
+
+        return view('admin.verify', compact('upload'));
+    }
+
+
+    // Menampilkan view detail upload (halaman HTML)
+    public function detailUpload($id)
+    {
+        // Cek apakah upload ada
+        $upload = DB::table('uploads')->where('id', $id)->first();
+
+        if (!$upload) {
+            abort(404, 'Dokumen tidak ditemukan');
+        }
+
+        // Render halaman HTML
+        return view('adminDetail', ['uploadId' => $id]);
+    }
+
+    // Menampilkan Dashboard Admin (halaman HTML)
     public function dashboard()
     {
         $uploads = DB::table('uploads')
@@ -280,24 +286,26 @@ class AdminController extends Controller
         return view('dashboardAdmin', compact('uploads'));
     }
 
-    // Mengambil Ringkasan Data dari Database
+    // API: Mengambil statistik untuk dashboard (JSON)
     public function stats()
     {
         return response()->json([
-            'users' => DB::table('users')->count(),
-            'uploads' => DB::table('uploads')->count(),
-            'verified' => DB::table('uploads')->where('status', 'verified')->count()
+            'total_users' => DB::table('users')->count(),
+            'pending_docs' => DB::table('uploads')->where('status', 'pending')->count(),
+            'verified_docs' => DB::table('uploads')->where('status', 'verified')->count(),
+            'rejected_docs' => DB::table('uploads')->where('status', 'rejected')->count(),
+            'encrypted_docs' => DB::table('uploads')->count()
         ]);
     }
 
-    // Menampilkan Semua Users
+    // Menampilkan halaman user management (halaman HTML)
     public function users()
     {
         $users = User::all();
         return view('adminUsers', compact('users'));
     }
 
-    // Update Role Users
+    // Update role user (API endpoint)
     public function updateRole(Request $request, $id)
     {
         $request->validate([
